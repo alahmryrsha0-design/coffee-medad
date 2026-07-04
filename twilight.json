@@ -59,6 +59,8 @@
         "mega-menu",
         "component-fixed-banner",
         "component-featured-products",
-        "unite-cards-height"
+        "unite-cards-height",
+        "component-store-features",
+        "component-square-photos"
     ]
 }
