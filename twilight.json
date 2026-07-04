@@ -1,52 +1,64 @@
 {
-  "name": "coffee-medad",
-  "title": "ثيم كوفي مداد الفاخر",
-  "description": "ثيم مخصص ومطور خصيصاً لمتجر كوفي مداد المختص بأحدث معايير الأداء والأمان",
-  "version": "1.0.0",
-  "author": "Rasha Ahmed",
-  "components": ["header", "footer"],
-  "settings": {
-    "properties": {
-      "title_branding": {
-        "type": "text",
-        "title": "العنوان الجانبي للبراند",
-        "default": "تجربة القهوة المختصة"
-      },
-      "hero_image_url": {
-        "type": "image",
-        "title": "رابط صورة البانر الرئيسي",
-        "default": "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1200"
-      },
-      "featured_product_title": {
-        "type": "text",
-        "title": "عنوان مشروب الأسبوع",
-        "default": "فلات وايت مِداد"
-      },
-      "featured_product_subtitle": {
-        "type": "text",
-        "title": "نوع محصول مشروب الأسبوع",
-        "default": "كولومبي هويلا (مغسول)"
-      },
-      "featured_product_description": {
-        "type": "textarea",
-        "title": "وصف مشروب الأسبوع",
-        "default": "استخلاص مثالي متوازن يجمع بين حدة ثنائية الإسبريسو وسلاسة الحليب المبخر بقوام مخملي دقيق."
-      },
-      "featured_product_price": {
-        "type": "text",
-        "title": "سعر مشروب الأسبوع",
-        "default": "١٨"
-      },
-      "featured_product_image": {
-        "type": "image",
-        "title": "صورة مشروب الأسبوع",
-        "default": "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=600"
-      },
-      "about_philosophy": {
-        "type": "textarea",
-        "title": "نص فلسفة البساطة",
-        "default": "نركز فقط على جودة المحصول، دقة التحميص، لتقديم كوب قهوة يغير تفاصيل يومك."
-      }
-    }
-  }
+    "name": "coffee-medad",
+    "title": "ثيم كوفي مداد الفاخر",
+    "description": "ثيم مخصص ومطور خصيصاً لمتجر كوفي مداد المختص بأحدث معايير الأداء والأمان",
+    "version": "1.0.0",
+    "author": "Rasha Ahmed",
+    "components": [
+        "header",
+        "footer"
+    ],
+    "settings": {
+        "properties": {
+            "title_branding": {
+                "type": "text",
+                "title": "العنوان الجانبي للبراند",
+                "default": "تجربة القهوة المختصة"
+            },
+            "hero_image_url": {
+                "type": "image",
+                "title": "رابط صورة البانر الرئيسي",
+                "default": "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1200"
+            },
+            "featured_product_title": {
+                "type": "text",
+                "title": "عنوان مشروب الأسبوع",
+                "default": "فلات وايت مِداد"
+            },
+            "featured_product_subtitle": {
+                "type": "text",
+                "title": "نوع محصول مشروب الأسبوع",
+                "default": "كولومبي هويلا (مغسول)"
+            },
+            "featured_product_description": {
+                "type": "textarea",
+                "title": "وصف مشروب الأسبوع",
+                "default": "استخلاص مثالي متوازن يجمع بين حدة ثنائية الإسبريسو وسلاسة الحليب المبخر بقوام مخملي دقيق."
+            },
+            "featured_product_price": {
+                "type": "text",
+                "title": "سعر مشروب الأسبوع",
+                "default": "١٨"
+            },
+            "featured_product_image": {
+                "type": "image",
+                "title": "صورة مشروب الأسبوع",
+                "default": "https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=600"
+            },
+            "about_philosophy": {
+                "type": "textarea",
+                "title": "نص فلسفة البساطة",
+                "default": "نركز فقط على جودة المحصول، دقة التحميص، لتقديم كوب قهوة يغير تفاصيل يومك."
+            }
+        }
+    },
+    "features": [
+        "breadcrumb",
+        "color",
+        "fonts",
+        "mega-menu",
+        "component-fixed-banner",
+        "component-featured-products",
+        "unite-cards-height"
+    ]
 }
