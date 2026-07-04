@@ -1,175 +1,249 @@
-{#
-| Variable         | Type       | Description                                                         |
-|------------------|------------|---------------------------------------------------------------------|
-| page             | object     |                                                                     |
-| page.title       | string     | *could be html                                                      |
-| page.slug        | string     | ex: "cat.show"                                                      |
-| store            | Store      | store.name, store.logo, store.contacts, store.social ...            |
-#}
-{% extends "layouts.master" %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <title>{{ store.name }} | {{ theme.settings.title_branding }}</title>
+    
+    {# استدعاء ملفات الستستايل والـ Head الرسمية من سلة لضمان الأمان والأداء #}
+    {{ theme.view.head() | raw }}
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome للإيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ios: {
+                            bg: '#F2F2F7',       
+                            card: '#FFFFFF',     
+                            text: '#1C1C1E',     
+                            muted: '#8E8E93'     
+                        },
+                        medad: {
+                            main: '#1A3324',     /* اللون الزيتي الفاخر المعتمد لمِداد */
+                            light: '#2A523A',    
+                            surface: '#E8EFEA'   
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'ios': '0 4px 20px rgba(0, 0, 0, 0.03)',
+                        'ios-sm': '0 2px 8px rgba(0, 0, 0, 0.02)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Cairo', sans-serif; background-color: #F2F2F7; color: #1C1C1E; padding-bottom: 70px; }
+        ::-webkit-scrollbar { display: none; }
+        
+        .glass-nav {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+        }
+        
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-element.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased {{ theme.view.body_classes() }} selection:bg-medad-main selection:text-white">
 
-{% block content %}
+    <!-- شريط تقدم القراءة العلوي التفاعلي -->
+    <div id="scroll-indicator" class="fixed top-0 left-0 right-0 h-1 bg-medad-main z-50 transition-all duration-100" style="width: 0%;"></div>
 
-{# ==================================================================
-   ثيم "كوفي مِداد" — الصفحة الرئيسية
-   تصميم فاخر بالألوان الزيتية والبيج، مع منتجات سلة الديناميكية
-   ================================================================== #}
+    <!-- الهيدر العلوي المتوافق مع سلة -->
+    <header class="fixed top-0 left-0 right-0 z-40 glass-nav border-b border-black/[0.04]">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="text-medad-main font-black text-xl tracking-wider uppercase select-none">
+                {{ store.name }}
+            </div>
+            
+            <nav class="hidden md:flex gap-8 text-sm font-bold text-ios-text">
+                <a href="#featured" class="hover:text-medad-main transition-colors">المميز</a>
+                <a href="#menu" class="hover:text-medad-main transition-colors">القائمة الرقمية</a>
+                <a href="#about" class="hover:text-medad-main transition-colors">عن مِداد</a>
+            </nav>
+            
+            <div class="text-medad-main bg-medad-surface text-[10px] md:text-xs font-bold px-3 py-1 rounded-full border border-medad-main/5">
+                {{ store.location }}
+            </div>
+        </div>
+    </header>
 
-<style>
-    :root{
-        --medad-main:#1A3324;      /* الأخضر الزيتي الفاخر */
-        --medad-light:#2A523A;
-        --medad-surface:#E8EFEA;   /* البيج الفاتح */
-        --medad-bg:#F2F2F7;
-    }
-    .medad-wrap{ background:var(--medad-bg); }
-    .medad-text-main{ color:var(--medad-main); }
-    .medad-bg-main{ background:var(--medad-main); }
-    .medad-bg-surface{ background:var(--medad-surface); }
-    .medad-shadow{ box-shadow:0 4px 20px rgba(0,0,0,.05); }
-    .medad-card{ background:#fff; border-radius:1.5rem; }
-    .medad-hero-overlay{
-        background:linear-gradient(to top, rgba(26,51,36,.95), rgba(26,51,36,.30), transparent);
-    }
-    .medad-reveal{ opacity:0; transform:translateY(12px); transition:all .5s cubic-bezier(.16,1,.3,1); }
-    .medad-reveal.is-visible{ opacity:1; transform:translateY(0); }
-    .medad-tab-btn{ transition:all .3s ease; }
-    .medad-tab-btn.is-active{ background:var(--medad-main); color:#fff; box-shadow:0 2px 8px rgba(26,51,36,.25); }
-</style>
-
-<div class="medad-wrap">
-<div class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-10">
-
-    {# ===================== ١. البانر الرئيسي (Hero) ===================== #}
-    <section class="medad-reveal">
-        <div class="medad-card medad-shadow overflow-hidden relative h-[32vh] sm:h-[45vh] md:h-[52vh] flex items-end">
-            <img src="{{ 'images/hero-bg.jpg' | asset }}"
-                 alt="{{ store.name }}"
-                 onerror="this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1600'"
-                 class="absolute inset-0 w-full h-full object-cover">
-            <div class="absolute inset-0 medad-hero-overlay"></div>
-            <div class="relative z-10 p-5 sm:p-10 md:p-12 w-full text-white">
-                <span class="bg-white/20 backdrop-blur-md text-white text-[9px] sm:text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-2 inline-block">Premium Coffee</span>
-                <h1 class="text-2xl sm:text-4xl md:text-5xl font-black mb-1 sm:mb-3 tracking-tight">{{ store.name ?: 'مِداد.' }}</h1>
-                <p class="text-xs sm:text-base md:text-lg font-medium text-white/85 max-w-md leading-relaxed mb-3 sm:mb-6">
-                    {{ store.slogan ?: 'بُعد رقمي يعكس فخامة البن وأصالة المكان في قلب جدة.' }}
+    <!-- قسم الغلاف البصري الغامر (البانر الإعلاني المتغير من لوحة التحكم) -->
+    <section class="pt-16 pb-2 px-3 max-w-6xl mx-auto reveal-element">
+        <div class="bg-ios-card rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden shadow-ios relative h-[25vh] sm:h-[40vh] md:h-[50vh] flex items-end group">
+            <img src="{{ theme.settings.hero_image_url }}" alt="Medad Experience" onerror="this.src='https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1200'" class="absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-medad-main/95 via-medad-main/30 to-transparent"></div>
+            <div class="relative z-10 p-4 md:p-12 w-full text-white">
+                <span class="bg-white/20 backdrop-blur-md text-white text-[8px] md:text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-widest mb-1 inline-block">Premium Coffee</span>
+                <h1 class="text-xl md:text-5xl font-black mb-0.5 md:mb-3 tracking-tight">{{ store.name }}.</h1>
+                <p class="text-[10px] md:text-lg font-medium text-white/80 max-w-md leading-relaxed mb-2 md:mb-6">
+                    {{ store.description }}
                 </p>
-                <a href="#medad-menu"
-                   class="inline-flex items-center justify-center bg-white medad-text-main text-xs sm:text-base font-bold px-6 sm:px-10 py-2.5 sm:py-3.5 rounded-full shadow-lg active:scale-95 transition-transform">
+                <a href="#menu" class="inline-flex items-center justify-center bg-white text-medad-main text-[10px] md:text-base font-bold px-4 md:px-10 py-1.5 md:py-3.5 rounded-full shadow-lg active:scale-95 transition-transform">
                     استكشف القائمة
                 </a>
             </div>
         </div>
     </section>
 
-    {# ===================== ٢. مشروب الأسبوع (منتج مميّز ديناميكي) ===================== #}
-    <section id="medad-featured" class="medad-reveal">
-        <h2 class="text-lg sm:text-2xl font-black medad-text-main tracking-tight mb-3 sm:mb-5">مشروب الأسبوع</h2>
-        {#
-          يعرض المنتج الأكثر مبيعاً من متجر التاجر تلقائياً (منتج واحد).
-          يتغيّر حسب مبيعات متجر كل تاجر.
-        #}
-        <salla-products-list source="top-sales" limit="2"></salla-products-list>
-    </section>
-
-    {# ===================== ٣. القائمة (منتجات التاجر الديناميكية) ===================== #}
-    <section id="medad-menu" class="medad-reveal">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
-            <h2 class="text-lg sm:text-2xl font-black medad-text-main tracking-tight w-full sm:w-auto text-right">القائمة</h2>
-            <div class="inline-flex bg-[#E5E5EA] p-1 rounded-full w-full sm:w-auto justify-between gap-1">
-                <button type="button" onclick="medadSwitchTab(this,'latest')"    class="medad-tab-btn is-active flex-1 sm:flex-none px-4 sm:px-6 py-1.5 text-xs sm:text-sm font-bold rounded-full medad-text-main">المشروبات</button>
-                <button type="button" onclick="medadSwitchTab(this,'top-sales')"  class="medad-tab-btn flex-1 sm:flex-none px-4 sm:px-6 py-1.5 text-xs sm:text-sm font-bold rounded-full medad-text-main">الأكثر مبيعاً</button>
-                <button type="button" onclick="medadSwitchTab(this,'offers')"     class="medad-tab-btn flex-1 sm:flex-none px-4 sm:px-6 py-1.5 text-xs sm:text-sm font-bold rounded-full medad-text-main">العروض</button>
+    <!-- قسم مشروب الأسبوع -->
+    <section id="featured" class="py-3 md:py-8 px-3 max-w-6xl mx-auto reveal-element">
+        <h2 class="text-base md:text-2xl font-black text-medad-main tracking-tight mb-2 md:mb-6">مشروب الأسبوع</h2>
+        <div class="bg-ios-card rounded-[1.5rem] p-3 md:p-6 shadow-ios flex flex-col lg:flex-row gap-3 md:gap-6 items-center border border-black/[0.02]">
+            <div class="w-full lg:w-1/2 h-36 sm:h-64 md:h-80 rounded-[1.2rem] overflow-hidden bg-gray-100">
+                <img src="{{ theme.settings.featured_product_image }}" alt="Featured Drink" onerror="this.src='https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=600'" class="w-full h-full object-cover">
+            </div>
+            <div class="w-full lg:w-1/2 space-y-1.5 md:space-y-4 text-right">
+                <span class="text-[8px] font-bold text-medad-main tracking-wider uppercase bg-medad-surface px-2 py-0.5 rounded-full inline-block">Signature Blend</span>
+                <h3 class="text-base md:text-2xl font-black text-ios-text">{{ theme.settings.featured_product_title }}</h3>
+                <p class="text-ios-muted text-[10px] md:text-base leading-relaxed font-medium">
+                    {{ theme.settings.featured_product_description }}
+                </p>
+                <div class="p-2 md:p-3 bg-ios-bg rounded-xl flex justify-between items-center text-[11px] md:text-base">
+                    <span class="font-bold text-medad-main">{{ theme.settings.featured_product_subtitle }}</span>
+                    <span class="font-black text-medad-main whitespace-nowrap">{{ theme.settings.featured_product_price }} ر.س</span>
+                </div>
             </div>
         </div>
-
-        {# قائمة منتجات سلة الحقيقية — تتغيّر حسب التبويب المختار #}
-        <salla-products-list id="medad-products" source="latest" source-value=""></salla-products-list>
     </section>
 
-    {# ===================== ٤. فلسفة البساطة + الموقع/الخريطة ===================== #}
-    <section id="medad-about" class="medad-reveal">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-
-            {# كارت فلسفة البساطة #}
-            <div class="medad-bg-main text-white rounded-[1.2rem] p-5 sm:p-6 medad-shadow flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute -left-6 -bottom-6 opacity-10 hidden sm:block">
-                    <i class="sicon-coffee text-7xl"></i>
+    <!-- قسم القائمة الرقمية المربوط ديناميكياً بمنتجات متجر سلة فعلياً -->
+    <section id="menu" class="py-3 md:py-8 px-3 max-w-6xl mx-auto reveal-element">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-3 md:mb-8 gap-2">
+            <h2 class="text-base md:text-2xl font-black text-medad-main tracking-tight w-full md:w-auto text-right">القائمة</h2>
+            
+            <div class="inline-flex bg-[#E5E5EA] p-0.5 rounded-full relative w-full md:w-auto justify-between">
+                <button onclick="switchTab('all')" id="tab-all" class="flex-1 md:flex-none relative z-10 px-3 md:px-6 py-1 text-[11px] md:text-sm font-bold rounded-full transition-all duration-300 bg-medad-main shadow-sm text-white">كل المنتجات</button>
+                {% for category in categories %}
+                    <button onclick="switchTab('{{ category.id }}')" id="tab-{{ category.id }}" class="flex-1 md:flex-none relative z-10 px-3 md:px-6 py-1 text-[11px] md:text-sm font-bold rounded-full transition-all duration-300 text-ios-muted hover:text-medad-main">{{ category.name }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {# حاوية عرض المنتجات المربوطة بمحرك سلة #}
+        <div id="menu-container" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-6 transition-opacity duration-300">
+            {% for product in products %}
+                <div class="bg-ios-card rounded-[1rem] p-2 shadow-ios-sm border border-black/[0.005] relative flex flex-col justify-between product-card-item" data-category="{{ product.category_id }}">
+                    <div class="relative w-full h-32 sm:h-48 rounded-[0.8rem] overflow-hidden mb-2 bg-gradient-to-br from-medad-main to-medad-light flex items-center justify-center">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" class="w-full h-full object-cover">
+                        <div class="hidden text-white font-bold text-center p-2 text-[10px] uppercase font-serif">{{ store.name }}</div>
+                    </div>
+                    <div class="px-0.5 pb-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <h3 class="text-[11px] sm:text-base font-bold text-ios-text tracking-tight leading-tight">{{ product.name }}</h3>
+                        <span class="bg-medad-surface text-medad-main font-bold px-1.5 py-0.5 rounded-full text-[9px] md:text-xs border border-medad-main/10 w-fit whitespace-nowrap">{{ product.price }} ر.س</span>
+                    </div>
                 </div>
-                <h3 class="text-base sm:text-lg font-black mb-2">فلسفة البساطة</h3>
-                <p class="text-white/85 font-medium leading-relaxed text-xs sm:text-base">
-                    نركز فقط على جودة المحصول، ودقة التحميص، لتقديم كوب قهوة يُغيّر تفاصيل يومك.
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- قسم الفلسفة والموقع الجغرافي المباشر لمتجر سلة -->
+    <section id="about" class="py-3 md:py-8 px-3 max-w-6xl mx-auto">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-2.5 md:gap-6">
+            
+            <!-- فلسفة البساطة من لوحة إعدادات الثيم -->
+            <div class="bg-medad-main text-white rounded-[1.2rem] p-3 md:p-6 shadow-ios reveal-element flex flex-col justify-center relative overflow-hidden">
+                <h3 class="text-xs md:text-lg font-black mb-1">فلسفة البساطة</h3>
+                <p class="text-white/80 font-medium leading-relaxed text-[9px] md:text-base">
+                    {{ theme.settings.about_philosophy }}
                 </p>
             </div>
-
-            {# كارت الموقع والخريطة #}
-            <div id="medad-location" class="lg:col-span-2 medad-card p-3 sm:p-4 medad-shadow flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
-                <div class="w-full sm:w-1/2 min-h-[150px] rounded-[1rem] overflow-hidden relative">
-                    <iframe src="https://maps.google.com/maps?q=Red%20Sea%20Mall,%20Jeddah&t=&z=15&ie=UTF8&iwloc=&output=embed"
-                            width="100%" height="100%" style="border:0;min-height:150px;"
-                            allowfullscreen loading="lazy" class="absolute inset-0"></iframe>
+            
+            <!-- الموقع الجغرافي المستدعى ديناميكياً -->
+            <div id="location" class="col-span-1 lg:col-span-2 bg-ios-card rounded-[1.2rem] p-2 md:p-4 shadow-ios reveal-element flex flex-col sm:flex-row gap-2 md:gap-4 items-center">
+                <div class="w-full sm:w-1/2 h-20 sm:h-full min-h-[85px] sm:min-h-[160px] rounded-[0.8rem] overflow-hidden relative shadow-inner">
+                    <iframe src="https://maps.google.com/maps?q={{ store.location | url_encode }}&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" class="absolute inset-0 grayscale-[10%] contrast-110"></iframe>
                 </div>
-                <div class="w-full sm:w-1/2 flex flex-col justify-between py-1 text-right">
+                <div class="w-full sm:w-1/2 space-y-0.5 sm:space-y-2 text-right flex flex-col justify-between h-full py-0.5 px-0.5">
                     <div>
-                        <h3 class="text-base sm:text-xl font-black medad-text-main leading-tight">
-                            {{ store.name ?: 'رد سي مول، جدة' }}
-                        </h3>
-                        <p class="text-gray-500 font-medium text-xs sm:text-sm mt-1">بوابة رقم ٤، الدور الأرضي</p>
-                        <p class="hidden sm:block text-sm font-bold medad-text-main mt-3">04:00 عصراً — 12:00 ليلاً</p>
+                        <h3 class="text-[10px] md:text-xl font-black text-ios-text leading-tight">{{ store.location }}</h3>
+                        <p class="text-ios-muted font-medium text-[8px] md:text-sm">زيارتكم تسعدنا في فرعنا الرسمي لـ {{ store.name }}</p>
                     </div>
-                    <a href="https://maps.google.com/?q=Red+Sea+Mall+Jeddah" target="_blank" rel="noopener"
-                       class="block w-full medad-bg-surface medad-text-main text-center font-bold py-2.5 rounded-lg text-xs sm:text-base hover:medad-bg-main hover:text-white transition-colors mt-3">
-                        فتح في الخرائط
-                    </a>
+                    <a href="https://maps.google.com/?q={{ store.location | url_encode }}" target="_blank" class="block w-full bg-medad-surface text-medad-main text-center font-bold py-1 rounded-md text-[8px] md:text-base">فتح في الخرائط</a>
                 </div>
             </div>
-
+            
         </div>
     </section>
 
-    {# ===================== ٥. آراء الزوار (تقييمات سلة) ===================== #}
-    <section id="medad-reviews" class="medad-reveal">
-        <h2 class="text-lg sm:text-2xl font-black medad-text-main tracking-tight mb-4 sm:mb-5">آراء الزوار</h2>
-        {#
-          مكوّن تقييمات سلة الرسمي — يعرض تقييمات حقيقية من عملاء المتجر
-          يظهر تلقائياً لو فعّل التاجر التقييمات من لوحة التحكم
-        #}
-        <salla-reviews limit="6" sort="latest" type="store"></salla-reviews>
-    </section>
+    <!-- بار التنقل السفلي المخصص للجوال -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-nav border-t border-black/[0.04] pb-safe z-40 shadow-ios">
+        <div class="flex justify-around items-center h-[52px] px-6">
+            <a href="#" class="flex flex-col items-center gap-0.5 text-medad-main"><i class="fa-solid fa-house text-sm"></i><span class="text-[8px] font-bold">الرئيسية</span></a>
+            <a href="#menu" class="flex flex-col items-center gap-0.5 text-ios-muted"><i class="fa-solid fa-mug-hot text-sm"></i><span class="text-[8px] font-bold">المنيو</span></a>
+            <a href="#about" class="flex flex-col items-center gap-0.5 text-ios-muted"><i class="fa-solid fa-location-dot text-sm"></i><span class="text-[8px] font-bold">الموقع</span></a>
+        </div>
+    </nav>
 
-</div>
-</div>
+    <!-- فوتر نهاية الصفحة المتجاوب -->
+    <footer class="bg-white text-center py-6 text-xs text-ios-muted border-t border-gray-200/50 hidden md:block">
+        <p>جميع الحقوق محفوظة © {{ "now" | date("Y") }} {{ store.name }} المختص.</p>
+    </footer>
 
-{% endblock %}
+    {# استدعاء ملفات الجافا سكربت المعتمدة والضرورية لمنصة سلة #}
+    {{ theme.view.footer() | raw }}
 
-{% block scripts %}
-<script>
-    // تبديل تبويبات القائمة — يغيّر مصدر منتجات سلة الديناميكية
-    function medadSwitchTab(btn, source){
-        document.querySelectorAll('.medad-tab-btn').forEach(function(b){ b.classList.remove('is-active'); });
-        btn.classList.add('is-active');
-        var list = document.getElementById('medad-products');
-        if(list){
-            list.setAttribute('source', source);
-            // إعادة تحميل المنتجات بالمصدر الجديد
-            if(typeof list.reload === 'function'){ list.reload(); }
-        }
-    }
+    <script>
+        // دالة الفلترة التفاعلية للمنتجات المتوافقة مع بنية محرك سلة السحابية
+        function switchTab(categoryId) {
+            const container = document.getElementById('menu-container');
+            container.style.opacity = '0';
+            
+            // تحديث تصميم التبويبات النشطة وغير النشطة
+            document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
+                btn.className = 'flex-1 md:flex-none relative z-10 px-3 md:px-5 py-1 text-[11px] font-bold rounded-full transition-all duration-300 text-ios-muted hover:text-medad-main';
+            });
+            document.getElementById(`tab-${categoryId}`).className = 'flex-1 md:flex-none relative z-10 px-3 md:px-5 py-1 text-[11px] font-bold rounded-full transition-all duration-300 bg-medad-main shadow-sm text-white';
 
-    // ظهور تدريجي للأقسام عند التمرير
-    document.addEventListener('DOMContentLoaded', function(){
-        var els = document.querySelectorAll('.medad-reveal');
-        if('IntersectionObserver' in window){
-            var obs = new IntersectionObserver(function(entries){
-                entries.forEach(function(e){
-                    if(e.isIntersecting){ e.target.classList.add('is-visible'); obs.unobserve(e.target); }
+            setTimeout(() => {
+                const items = document.querySelectorAll('.product-card-item');
+                items.forEach(item => {
+                    if (categoryId === 'all' || item.getAttribute('data-category') === categoryId) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
                 });
-            }, { threshold:.1 });
-            els.forEach(function(el){ obs.observe(el); });
-        } else {
-            els.forEach(function(el){ el.classList.add('is-visible'); });
+                container.style.opacity = '1';
+            }, 100);
         }
-    });
-</script>
-<script defer src="{{ 'home.js' | asset }}"></script>
-{% endblock %}
+
+        window.addEventListener('scroll', () => {
+            const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+            const indicator = document.getElementById('scroll-indicator');
+            if(indicator) indicator.style.width = scrolled + '%';
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('active'); observer.unobserve(entry.target); } });
+        }, { threshold: 0.1 });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
